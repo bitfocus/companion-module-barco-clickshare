@@ -20,7 +20,21 @@ class instance extends InstanceSkel<BarcoClickShareConfig> {
 	}
 
   public isInUse?: boolean = undefined;
-  private subscriptions: number = 0;
+  private _subscriptions: number = 0;
+  
+  private get subscriptions(): number {
+    return this._subscriptions;
+  }
+  
+  private set subscriptions(value: number) {
+    this._subscriptions = value;
+    this.shouldBePolling = value > 0;
+    if (this.shouldBePolling && !this.isPolling) {
+      this.pollInUseStatus();
+      // it stops by itself
+    }
+  }
+
   private shouldBePolling: boolean = false;
   private isPolling: boolean = false;
 
@@ -75,7 +89,7 @@ class instance extends InstanceSkel<BarcoClickShareConfig> {
      this.subscribeFeedbacks();
    }
 
-   /**
+  /**
    * Clean up the instance before it is destroyed. 
    * This is called both on shutdown and when an instance 
    * is disabled or deleted. Destroy any timers and socket
@@ -86,17 +100,29 @@ class instance extends InstanceSkel<BarcoClickShareConfig> {
     this._api = null;
   }
 
-  private async pollStatus() {
-    while (this._api && this.shouldBePolling) {
-      this.isPolling = true;
-      let wasInUse = this.isInUse;
-      this.isInUse = await this._api.isInUse();
-      if (wasInUse !== this.isInUse) {
-        this.checkFeedbacks('inUse', 'idle');
+  /**
+   * Poll for in use status continuously until there are 
+   * no more subscriptions or until the module is destroyed
+   * @return {void}
+   */
+  private async pollInUseStatus() {
+    this.isPolling = true;
+    try {
+      // loop until we don't need to poll any more
+      while (this._api && this.shouldBePolling) {
+        // check the status via the api
+        let isInUse = await this._api.isInUse();
+        if (isInUse !== this.isInUse) {
+          // status changed
+          this.isInUse = isInUse;
+          this.checkFeedbacks('inUse', 'idle');
+        }
+        await sleep(750);
       }
-      await sleep(1000);
     }
-    this.isPolling = false;
+    finally {
+      this.isPolling = false;
+    }
   }
 
   /**
@@ -133,11 +159,9 @@ class instance extends InstanceSkel<BarcoClickShareConfig> {
         },
         subscribe: () => {
           this.subscriptions++;
-          this.managePollingInUse();
         },
         unsubscribe: () => {
           this.subscriptions--;
-          this.managePollingInUse();
         }
       },
       idle: {
@@ -161,24 +185,14 @@ class instance extends InstanceSkel<BarcoClickShareConfig> {
         },
         subscribe: () => {
           this.subscriptions++;
-          this.managePollingInUse();
         },
         unsubscribe: () => {
           this.subscriptions--;
-          this.managePollingInUse();
         }
       }
-
     });
   }
 
-  managePollingInUse() {
-    this.shouldBePolling = this.subscriptions > 0;
-    if (this.shouldBePolling && !this.isPolling) {
-      this.pollStatus();
-      // it stops by itself
-    }
-  }
 }
 
 exports = module.exports = instance;
