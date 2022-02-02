@@ -8,7 +8,7 @@
     "sharing",
     "clickshare"
   ],
-  "main": "src/index.js",
+  "main": "dist/index.js",
   "manufacturer": "Barco",
   "product": "Clickshare",
   "shortname": "clickshare",
@@ -17,13 +17,22 @@
   "license": "MIT",
   "private": false,
   "scripts": {
-    "build": "tsc src/index.ts",
-    "dev": "tsc src/index.ts --watch"
+    "dev": "yarn build:watch",
+    "build": "npx rimraf dist && npx typescript@~4.2 -p tsconfig.build.json",
+    "build:main": "tsc -p tsconfig.build.json",
+    "build:watch": "tsc -p tsconfig.build.json --watch",
+    "lint": "eslint . --ext .ts",
+    "postinstall": "yarn build",
+    "test": "qunit --require ts-node/register 'test/**/*-test.ts'"
   },
   "dependencies": {
+    "node-fetch": "^2.0.0",
     "typescript": "^4.5.5"
   },
   "devDependencies": {
-    "@types/node": "^17.0.14"
+    "@types/node": "^17.0.14",
+    "nock": "^13.2.2",
+    "qunit": "^2.17.2",
+    "ts-node": "^10.4.0"
   }
 }
