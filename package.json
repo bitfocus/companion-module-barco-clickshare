@@ -3,7 +3,12 @@
   "description": "Barco Clickshare module for Companion",
   "api_version": "1.0.0",
   "version": "1.0.0",
-  "main": "lib/index.js",
+  "keywords": [
+    "barco",
+    "sharing",
+    "clickshare"
+  ],
+  "main": "src/index.js",
   "manufacturer": "Barco",
   "product": "Clickshare",
   "shortname": "clickshare",
@@ -12,7 +17,8 @@
   "license": "MIT",
   "private": false,
   "scripts": {
-    "build": "tsc lib/index.ts"
+    "build": "tsc src/index.ts",
+    "dev": "tsc src/index.ts --watch"
   },
   "dependencies": {
     "typescript": "^4.5.5"

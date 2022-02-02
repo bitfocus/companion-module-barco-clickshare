@@ -46,7 +46,9 @@ class instance extends instance_skel {
    * connections here.
    * @return {void}
    */
-  destroy(): void {}
+  destroy(): void {
+    
+  }
 
   /**
    * Main initialization function called once the module is 
