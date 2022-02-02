@@ -1,3 +1,5 @@
+import { AnyCnameRecord } from 'dns';
+import { Agent } from 'https';
 import fetch, { HeadersInit, Response } from 'node-fetch';
 
 class HTTPResponseError extends Error {
@@ -23,15 +25,21 @@ export default class BarcoApi {
   private _port: number;
   private _credentials: string;
   private _defaultHeaders: HeadersInit;
+  private _agent: Agent;
+  private _apiVersion: string;
 
   constructor(host: string, port: number, user: string, pass: string) {
     this._host = host;
     this._port = port;
+    this._apiVersion = 'v2';
     this._credentials = Buffer.from(`${user}:${pass}`).toString('base64');
     this._defaultHeaders = {
       Accept: 'application/json',
       Authorization: `Basic ${this._credentials}`
     };
+    this._agent = new Agent({  
+      rejectUnauthorized: false
+    });
   }
 
   private checkStatus (response: Response) {
@@ -49,17 +57,20 @@ export default class BarcoApi {
   }
 
   public async isInUse(): Promise<boolean> {
-    const response = await fetch(
-      `https://${this._host}:${this._port}/configuration/system/status`,
-      {
-        method: 'get',
-        headers: this._defaultHeaders
-      });
     try {
+      const url = `https://${this._host}:${this._port}/${this._apiVersion}/configuration/system/status`;
+      const response = await fetch(
+        url,
+        {
+          method: 'get',
+          headers: this._defaultHeaders,
+          agent: this._agent
+        });
       this.checkStatus(response);
       const data = await response.json() as BarcoSystemStatusResponse;
       return data.inUse;
-    } catch (e) {
+    } catch (e: any) {
+      console.error(`Barco clickshare error: ${e.message}`);
       return false;
     }
   }
