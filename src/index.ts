@@ -111,11 +111,17 @@ class instance extends InstanceSkel<BarcoClickShareConfig> {
       // loop until we don't need to poll any more
       while (this._api && this.shouldBePolling) {
         // check the status via the api
-        let isInUse = await this._api.isInUse();
-        if (isInUse !== this.isInUse) {
-          // status changed
-          this.isInUse = isInUse;
-          this.checkFeedbacks('inUse', 'idle');
+        try {
+          let isInUse = await this._api.isInUse();
+          this.status(this.STATUS_OK);
+          if (isInUse !== this.isInUse) {
+            // status changed
+            this.isInUse = isInUse;
+            this.checkFeedbacks('inUse', 'idle');
+          }
+        }
+        catch (e: any) {
+          this.status(this.STATUS_ERROR, e.message);
         }
         await sleep(750);
       }
