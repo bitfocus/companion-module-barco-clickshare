@@ -31,6 +31,7 @@
   },
   "devDependencies": {
     "@types/node": "^17.0.14",
+    "@types/qunit": "^2.11.3",
     "nock": "^13.2.2",
     "qunit": "^2.17.2",
     "ts-node": "^10.4.0"

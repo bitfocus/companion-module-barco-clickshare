@@ -1,4 +1,3 @@
-import { AnyCnameRecord } from 'dns';
 import { Agent } from 'https';
 import fetch, { HeadersInit, Response } from 'node-fetch';
 
@@ -57,22 +56,17 @@ export default class BarcoApi {
   }
 
   public async isInUse(): Promise<boolean> {
-    try {
-      const url = `https://${this._host}:${this._port}/${this._apiVersion}/configuration/system/status`;
-      const response = await fetch(
-        url,
-        {
-          method: 'get',
-          headers: this._defaultHeaders,
-          agent: this._agent
-        });
-      this.checkStatus(response);
-      const data = await response.json() as BarcoSystemStatusResponse;
-      return data.inUse;
-    } catch (e: any) {
-      console.error(`Barco clickshare error: ${e.message}`);
-      return false;
-    }
+    const url = `https://${this._host}:${this._port}/${this._apiVersion}/configuration/system/status`;
+    const response = await fetch(
+      url,
+      {
+        method: 'get',
+        headers: this._defaultHeaders,
+        agent: this._agent
+      });
+    this.checkStatus(response);
+    const data = await response.json() as BarcoSystemStatusResponse;
+    return data.inUse;
   }
 } 
 
