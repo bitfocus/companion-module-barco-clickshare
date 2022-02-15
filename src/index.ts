@@ -20,6 +20,7 @@ class instance extends InstanceSkel<BarcoClickShareConfig> {
 	}
 
   public isInUse?: boolean = undefined;
+  public isSharing?: boolean = undefined;
   private _subscriptions: number = 0;
   
   private get subscriptions(): number {
@@ -112,12 +113,17 @@ class instance extends InstanceSkel<BarcoClickShareConfig> {
       while (this._api && this.shouldBePolling) {
         // check the status via the api
         try {
-          let isInUse = await this._api.isInUse();
+          let status = await this._api.isInUse();
           this.status(this.STATUS_OK);
-          if (isInUse !== this.isInUse) {
+          if (this.isInUse !== status.inUse) {
             // status changed
-            this.isInUse = isInUse;
-            this.checkFeedbacks('inUse', 'idle');
+            this.isInUse = status.inUse;
+            this.checkFeedbacks('available', 'inUse', 'idle');
+          }
+          if (this.isSharing !== status.sharing) {
+            // status changed
+            this.isSharing = status.sharing;
+            this.checkFeedbacks('available', 'sharing');
           }
         }
         catch (e: any) {
@@ -147,6 +153,29 @@ class instance extends InstanceSkel<BarcoClickShareConfig> {
       inUse: {
         type: 'boolean', // Feedbacks can either a simple boolean, or can be an 'advanced' style change (until recently, all feedbacks were 'advanced')
         label: 'In Use',
+        description: 'True if the app or a button is connected to the Clickshare',
+        style: {
+          // The default style change for a boolean feedback
+          // The user will be able to customise these values as well as the fields that will be changed
+          color: this.rgb(0, 0, 0),
+          bgcolor: this.rgb(255, 0, 0)
+        },
+        // options is how the user can choose the condition the feedback activates for
+        options: [],
+        callback: (_feedback: CompanionFeedbackEvent): boolean => {
+          // This callback will be called whenever companion wants to check if this feedback is 'active' and should affect the button style
+          return !!this.isInUse;    
+        },
+        subscribe: () => {
+          this.subscriptions++;
+        },
+        unsubscribe: () => {
+          this.subscriptions--;
+        }
+      },
+      sharing: {
+        type: 'boolean', // Feedbacks can either a simple boolean, or can be an 'advanced' style change (until recently, all feedbacks were 'advanced')
+        label: 'Sharing',
         description: 'True if someone is streaming a desktop to the Clickshare',
         style: {
           // The default style change for a boolean feedback
@@ -156,12 +185,9 @@ class instance extends InstanceSkel<BarcoClickShareConfig> {
         },
         // options is how the user can choose the condition the feedback activates for
         options: [],
-        callback: (feedback: CompanionFeedbackEvent): boolean => {
+        callback: (_feedback: CompanionFeedbackEvent): boolean => {
           // This callback will be called whenever companion wants to check if this feedback is 'active' and should affect the button style
-          switch (feedback.type) {
-            case 'inUse': return this.isInUse ?? false;    
-          }      
-          return false;            
+          return !!this.isSharing;    
         },
         subscribe: () => {
           this.subscriptions++;
@@ -172,8 +198,8 @@ class instance extends InstanceSkel<BarcoClickShareConfig> {
       },
       idle: {
         type: 'boolean', // Feedbacks can either a simple boolean, or can be an 'advanced' style change (until recently, all feedbacks were 'advanced')
-        label: 'Available for sharing',
-        description: 'True if no one is streaming a desktop to the Clickshare',
+        label: 'Idle',
+        description: 'True if no one is connected to the Clickshare',
         style: {
           // The default style change for a boolean feedback
           // The user will be able to customise these values as well as the fields that will be changed
@@ -182,12 +208,32 @@ class instance extends InstanceSkel<BarcoClickShareConfig> {
         },
         // options is how the user can choose the condition the feedback activates for
         options: [],
-        callback: (feedback: CompanionFeedbackEvent) => {
+        callback: (_feedback: CompanionFeedbackEvent) => {
           // This callback will be called whenever companion wants to check if this feedback is 'active' and should affect the button style
-          switch (feedback.type) {
-            case 'idle': return !this.isInUse;    
-          }      
-          return true;            
+          return !this.isInUse;    
+        },
+        subscribe: () => {
+          this.subscriptions++;
+        },
+        unsubscribe: () => {
+          this.subscriptions--;
+        }
+      },
+      available: {
+        type: 'boolean', // Feedbacks can either a simple boolean, or can be an 'advanced' style change (until recently, all feedbacks were 'advanced')
+        label: 'Available',
+        description: 'True if some one is connected to the Clickshare but no one is streaming',
+        style: {
+          // The default style change for a boolean feedback
+          // The user will be able to customise these values as well as the fields that will be changed
+          color: this.rgb(0, 0, 0),
+          bgcolor: this.rgb(255, 0, 0)
+        },
+        // options is how the user can choose the condition the feedback activates for
+        options: [],
+        callback: (_feedback: CompanionFeedbackEvent) => {
+          // This callback will be called whenever companion wants to check if this feedback is 'active' and should affect the button style
+          return !!this.isInUse && !this.isSharing;    
         },
         subscribe: () => {
           this.subscriptions++;
