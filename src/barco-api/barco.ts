@@ -19,6 +19,10 @@ interface BarcoSystemStatusResponse {
   totalUptime: number;
 }
 
+export interface InUseStatus {
+  inUse: boolean,
+  sharing: boolean
+}
 export default class BarcoApi {
   private _host: string;
   private _port: number;
@@ -55,7 +59,7 @@ export default class BarcoApi {
     headers.append('Authorization', `Basic ${this._credentials}`);
   }
 
-  public async isInUse(): Promise<boolean> {
+  public async isInUse(): Promise<InUseStatus> {
     const url = `https://${this._host}:${this._port}/${this._apiVersion}/configuration/system/status`;
     const response = await fetch(
       url,
@@ -66,7 +70,10 @@ export default class BarcoApi {
       });
     this.checkStatus(response);
     const data = await response.json() as BarcoSystemStatusResponse;
-    return data.inUse;
+    return {
+      inUse: data.inUse,
+      sharing: data.sharing
+    };
   }
 } 
 
