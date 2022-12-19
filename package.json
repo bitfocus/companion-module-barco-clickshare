@@ -2,7 +2,7 @@
   "name": "barco-clickshare",
   "description": "Barco Clickshare module for Companion",
   "api_version": "1.0.0",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "keywords": [
     "barco",
     "sharing",
@@ -18,7 +18,7 @@
   "private": false,
   "scripts": {
     "dev": "yarn build:watch",
-    "build": "npx rimraf dist && npx typescript@~4.5 -p tsconfig.build.json",
+    "build": "npx rimraf dist && npx --package=typescript@~4.5 -c 'tsc -p tsconfig.build.json'",
     "build:main": "tsc -p tsconfig.build.json",
     "build:watch": "tsc -p tsconfig.build.json --watch",
     "lint": "eslint . --ext .ts",
