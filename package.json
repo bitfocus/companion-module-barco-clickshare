@@ -2,7 +2,7 @@
   "name": "barco-clickshare",
   "description": "Barco Clickshare module for Companion",
   "api_version": "1.0.0",
-  "version": "1.0.5",
+  "version": "1.0.4",
   "keywords": [
     "barco",
     "sharing",
@@ -26,11 +26,11 @@
     "test": "qunit --require ts-node/register 'test/**/*-test.ts'"
   },
   "dependencies": {
-    "node-fetch": "^2.0.0"
+    "node-fetch": "^2.0.0",
+		"@types/node-fetch": "^2.6.2"
   },
   "devDependencies": {
     "@types/node": "^17.0.14",
-    "@types/node-fetch": "^2.6.2",
     "@types/qunit": "^2.11.3",
     "nock": "^13.2.2",
     "qunit": "^2.17.2",
