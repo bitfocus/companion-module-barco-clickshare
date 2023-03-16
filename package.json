@@ -2,7 +2,7 @@
   "name": "barco-clickshare",
   "description": "Barco Clickshare module for Companion",
   "api_version": "1.0.0",
-  "version": "1.0.3",
+  "version": "1.0.5",
   "keywords": [
     "barco",
     "sharing",
