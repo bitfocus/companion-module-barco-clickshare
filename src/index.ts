@@ -1,23 +1,17 @@
-import { CompanionFeedbackEvent, SomeCompanionConfigField } from '../../../instance_skel_types'
 import BarcoApi from './barco-api/barco'
-import InstanceSkel from '../../../instance_skel'
 import sleep from './sleep'
+import { BarcoClickShareConfig, getConfigFields } from './config'
+import {
+	InstanceBase,
+	InstanceStatus,
+	SomeCompanionConfigField,
+	combineRgb,
+	runEntrypoint,
+} from '@companion-module/base'
+import { UpgradeScripts } from './upgrades'
 
-interface BarcoClickShareConfig {
-	host: string
-	port: number
-	user: string
-	password: string
-}
-
-///
-class instance extends InstanceSkel<BarcoClickShareConfig> {
+class BarcoClickShareInstance extends InstanceBase<BarcoClickShareConfig> {
 	private _api: BarcoApi | null = null
-
-	constructor(system: any, id: any, config: any) {
-		super(system, id, config)
-		this.setupFeedback()
-	}
 
 	public isInUse?: boolean = undefined
 	public isSharing?: boolean = undefined
@@ -43,39 +37,9 @@ class instance extends InstanceSkel<BarcoClickShareConfig> {
 	 * Provide a simple return
 	 * of the necessary fields for the
 	 * instance configuration screen.
-	 * @return {object[]}
 	 */
-	config_fields(): SomeCompanionConfigField[] {
-		return [
-			{
-				type: 'textinput',
-				id: 'host',
-				label: 'Clickshare IP Address',
-				width: 6,
-				regex: this.REGEX_IP,
-			},
-			{
-				type: 'number',
-				id: 'port',
-				label: 'Clickshare API Port',
-				width: 6,
-				min: 1,
-				max: 65536,
-				default: 4003,
-			},
-			{
-				type: 'textinput',
-				id: 'user',
-				label: 'Clickshare API Username',
-				width: 6,
-			},
-			{
-				type: 'textinput',
-				id: 'password',
-				label: 'Clickshare API Password',
-				width: 6,
-			},
-		]
+	getConfigFields(): SomeCompanionConfigField[] {
+		return getConfigFields()
 	}
 
 	/**
@@ -84,8 +48,7 @@ class instance extends InstanceSkel<BarcoClickShareConfig> {
 	 * the module should establish a connection to the device.
 	 * @return {void}
 	 */
-	init(): void {
-		const config = this.config
+	async init(config: BarcoClickShareConfig): Promise<void> {
 		this._api = new BarcoApi(config.host, config.port, config.user, config.password)
 		this.subscribeFeedbacks()
 	}
@@ -97,8 +60,9 @@ class instance extends InstanceSkel<BarcoClickShareConfig> {
 	 * connections here.
 	 * @return {void}
 	 */
-	destroy(): void {
+	async destroy(): Promise<void> {
 		this._api = null
+		this.shouldBePolling = false
 	}
 
 	/**
@@ -114,7 +78,7 @@ class instance extends InstanceSkel<BarcoClickShareConfig> {
 				// check the status via the api
 				try {
 					let status = await this._api.isInUse()
-					this.status(this.STATUS_OK)
+					this.updateStatus(InstanceStatus.Ok)
 					if (this.isInUse !== status.inUse) {
 						// status changed
 						this.isInUse = status.inUse
@@ -126,7 +90,7 @@ class instance extends InstanceSkel<BarcoClickShareConfig> {
 						this.checkFeedbacks('available', 'sharing')
 					}
 				} catch (e: any) {
-					this.status(this.STATUS_ERROR, e.message)
+					this.updateStatus(InstanceStatus.ConnectionFailure, e.message)
 				}
 				await sleep(750)
 			}
@@ -141,8 +105,7 @@ class instance extends InstanceSkel<BarcoClickShareConfig> {
 	 * @param {BarcoClickShareConfig} config
 	 * @return {void}
 	 */
-	updateConfig(config: BarcoClickShareConfig): void {
-		this.config = config
+	async configUpdated(config: BarcoClickShareConfig): Promise<void> {
 		this._api = new BarcoApi(config.host, config.port, config.user, config.password)
 	}
 
@@ -150,17 +113,17 @@ class instance extends InstanceSkel<BarcoClickShareConfig> {
 		this.setFeedbackDefinitions({
 			inUse: {
 				type: 'boolean', // Feedbacks can either a simple boolean, or can be an 'advanced' style change (until recently, all feedbacks were 'advanced')
-				label: 'In Use',
+				name: 'In Use',
 				description: 'True if the app or a button is connected to the Clickshare',
-				style: {
+				defaultStyle: {
 					// The default style change for a boolean feedback
 					// The user will be able to customise these values as well as the fields that will be changed
-					color: this.rgb(0, 0, 0),
-					bgcolor: this.rgb(255, 0, 0),
+					color: combineRgb(0, 0, 0),
+					bgcolor: combineRgb(255, 0, 0),
 				},
 				// options is how the user can choose the condition the feedback activates for
 				options: [],
-				callback: (_feedback: CompanionFeedbackEvent): boolean => {
+				callback: (_feedback): boolean => {
 					// This callback will be called whenever companion wants to check if this feedback is 'active' and should affect the button style
 					return !!this.isInUse
 				},
@@ -173,17 +136,17 @@ class instance extends InstanceSkel<BarcoClickShareConfig> {
 			},
 			sharing: {
 				type: 'boolean', // Feedbacks can either a simple boolean, or can be an 'advanced' style change (until recently, all feedbacks were 'advanced')
-				label: 'Sharing',
+				name: 'Sharing',
 				description: 'True if someone is streaming a desktop to the Clickshare',
-				style: {
+				defaultStyle: {
 					// The default style change for a boolean feedback
 					// The user will be able to customise these values as well as the fields that will be changed
-					color: this.rgb(0, 0, 0),
-					bgcolor: this.rgb(255, 0, 0),
+					color: combineRgb(0, 0, 0),
+					bgcolor: combineRgb(255, 0, 0),
 				},
 				// options is how the user can choose the condition the feedback activates for
 				options: [],
-				callback: (_feedback: CompanionFeedbackEvent): boolean => {
+				callback: (_feedback): boolean => {
 					// This callback will be called whenever companion wants to check if this feedback is 'active' and should affect the button style
 					return !!this.isSharing
 				},
@@ -196,17 +159,17 @@ class instance extends InstanceSkel<BarcoClickShareConfig> {
 			},
 			idle: {
 				type: 'boolean', // Feedbacks can either a simple boolean, or can be an 'advanced' style change (until recently, all feedbacks were 'advanced')
-				label: 'Idle',
+				name: 'Idle',
 				description: 'True if no one is connected to the Clickshare',
-				style: {
+				defaultStyle: {
 					// The default style change for a boolean feedback
 					// The user will be able to customise these values as well as the fields that will be changed
-					color: this.rgb(0, 0, 0),
-					bgcolor: this.rgb(255, 0, 0),
+					color: combineRgb(0, 0, 0),
+					bgcolor: combineRgb(255, 0, 0),
 				},
 				// options is how the user can choose the condition the feedback activates for
 				options: [],
-				callback: (_feedback: CompanionFeedbackEvent) => {
+				callback: (_feedback) => {
 					// This callback will be called whenever companion wants to check if this feedback is 'active' and should affect the button style
 					return !this.isInUse
 				},
@@ -219,17 +182,17 @@ class instance extends InstanceSkel<BarcoClickShareConfig> {
 			},
 			available: {
 				type: 'boolean', // Feedbacks can either a simple boolean, or can be an 'advanced' style change (until recently, all feedbacks were 'advanced')
-				label: 'Available',
+				name: 'Available',
 				description: 'True if some one is connected to the Clickshare but no one is streaming',
-				style: {
+				defaultStyle: {
 					// The default style change for a boolean feedback
 					// The user will be able to customise these values as well as the fields that will be changed
-					color: this.rgb(0, 0, 0),
-					bgcolor: this.rgb(255, 0, 0),
+					color: combineRgb(0, 0, 0),
+					bgcolor: combineRgb(255, 0, 0),
 				},
 				// options is how the user can choose the condition the feedback activates for
 				options: [],
-				callback: (_feedback: CompanionFeedbackEvent) => {
+				callback: (_feedback) => {
 					// This callback will be called whenever companion wants to check if this feedback is 'active' and should affect the button style
 					return !!this.isInUse && !this.isSharing
 				},
@@ -244,4 +207,4 @@ class instance extends InstanceSkel<BarcoClickShareConfig> {
 	}
 }
 
-exports = module.exports = instance
+runEntrypoint(BarcoClickShareInstance, UpgradeScripts)

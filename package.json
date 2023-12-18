@@ -27,6 +27,6 @@
     "qunit": "^2.20.0",
     "rimraf": "^5.0.5",
     "ts-node": "^10.9.2",
-    "typescript": "~4.5"
+    "typescript": "~5.3"
   }
 }
