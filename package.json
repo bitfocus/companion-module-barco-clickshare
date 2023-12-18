@@ -1,19 +1,8 @@
 {
   "name": "barco-clickshare",
-  "description": "Barco Clickshare module for Companion",
-  "api_version": "1.0.0",
   "version": "1.0.4",
-  "keywords": [
-    "barco",
-    "sharing",
-    "clickshare"
-  ],
   "main": "dist/index.js",
-  "manufacturer": "Barco",
-  "product": "Clickshare",
-  "shortname": "clickshare",
-  "repository": "git@github.com:silver-curve/companion-module-barco-clickshare.git",
-  "author": "Bryan Crotaz <bgcrotaz@hotmail.com>",
+  "repository": "git@github.com:bitfocus/companion-module-barco-clickshare.git",
   "license": "MIT",
   "private": false,
   "scripts": {
