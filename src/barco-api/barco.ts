@@ -73,4 +73,20 @@ export default class BarcoApi {
 			sharing: data.sharing,
 		}
 	}
+
+	public async selectWallpaper(wallpaperId: number): Promise<Response> {
+		const url = `https://${this._host}:${this._port}/${this._apiVersion}/configuration/wallpapers/selected`
+		const opts = {
+			method: 'PATCH',
+			headers: {
+				Accept: '*/*',
+				'Content-Type': 'application/json',
+				Authorization: `Basic ${this._credentials}`,
+			},
+			agent: this._agent,
+			body: JSON.stringify({id: wallpaperId})
+		}
+		const response = await fetch(url, opts)
+		return this.checkStatus(response)
+	}
 }

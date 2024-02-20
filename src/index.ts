@@ -5,23 +5,24 @@ import {
 	InstanceBase,
 	InstanceStatus,
 	SomeCompanionConfigField,
-	combineRgb,
 	runEntrypoint,
 } from '@companion-module/base'
+import { UpdateFeedbacks } from './feedbacks'
 import { UpgradeScripts } from './upgrades'
+import { UpdateActions } from './actions'
 
-class BarcoClickShareInstance extends InstanceBase<BarcoClickShareConfig> {
+export class BarcoClickShareInstance extends InstanceBase<BarcoClickShareConfig> {
 	private _api: BarcoApi | null = null
 
 	public isInUse?: boolean = undefined
 	public isSharing?: boolean = undefined
 	private _subscriptions: number = 0
 
-	private get subscriptions(): number {
+	public get subscriptions(): number {
 		return this._subscriptions
 	}
 
-	private set subscriptions(value: number) {
+	public set subscriptions(value: number) {
 		this._subscriptions = value
 		this.shouldBePolling = value > 0
 		if (this.shouldBePolling && !this.isPolling) {
@@ -50,6 +51,8 @@ class BarcoClickShareInstance extends InstanceBase<BarcoClickShareConfig> {
 	 */
 	async init(config: BarcoClickShareConfig): Promise<void> {
 		this._api = new BarcoApi(config.host, config.port, config.user, config.password)
+		this.updateActions()
+		this.updateFeedbacks()
 		this.subscribeFeedbacks()
 	}
 
@@ -99,6 +102,10 @@ class BarcoClickShareInstance extends InstanceBase<BarcoClickShareConfig> {
 		}
 	}
 
+	selectWallpaper(wallpaperId: number) {
+		this._api?.selectWallpaper(wallpaperId)
+	}
+
 	/**
 	 * When the instance configuration is saved by the user,
 	 * this update will fire with the new configuration
@@ -109,101 +116,12 @@ class BarcoClickShareInstance extends InstanceBase<BarcoClickShareConfig> {
 		this._api = new BarcoApi(config.host, config.port, config.user, config.password)
 	}
 
-	setupFeedback() {
-		this.setFeedbackDefinitions({
-			inUse: {
-				type: 'boolean', // Feedbacks can either a simple boolean, or can be an 'advanced' style change (until recently, all feedbacks were 'advanced')
-				name: 'In Use',
-				description: 'True if the app or a button is connected to the Clickshare',
-				defaultStyle: {
-					// The default style change for a boolean feedback
-					// The user will be able to customise these values as well as the fields that will be changed
-					color: combineRgb(0, 0, 0),
-					bgcolor: combineRgb(255, 0, 0),
-				},
-				// options is how the user can choose the condition the feedback activates for
-				options: [],
-				callback: (_feedback): boolean => {
-					// This callback will be called whenever companion wants to check if this feedback is 'active' and should affect the button style
-					return !!this.isInUse
-				},
-				subscribe: () => {
-					this.subscriptions++
-				},
-				unsubscribe: () => {
-					this.subscriptions--
-				},
-			},
-			sharing: {
-				type: 'boolean', // Feedbacks can either a simple boolean, or can be an 'advanced' style change (until recently, all feedbacks were 'advanced')
-				name: 'Sharing',
-				description: 'True if someone is streaming a desktop to the Clickshare',
-				defaultStyle: {
-					// The default style change for a boolean feedback
-					// The user will be able to customise these values as well as the fields that will be changed
-					color: combineRgb(0, 0, 0),
-					bgcolor: combineRgb(255, 0, 0),
-				},
-				// options is how the user can choose the condition the feedback activates for
-				options: [],
-				callback: (_feedback): boolean => {
-					// This callback will be called whenever companion wants to check if this feedback is 'active' and should affect the button style
-					return !!this.isSharing
-				},
-				subscribe: () => {
-					this.subscriptions++
-				},
-				unsubscribe: () => {
-					this.subscriptions--
-				},
-			},
-			idle: {
-				type: 'boolean', // Feedbacks can either a simple boolean, or can be an 'advanced' style change (until recently, all feedbacks were 'advanced')
-				name: 'Idle',
-				description: 'True if no one is connected to the Clickshare',
-				defaultStyle: {
-					// The default style change for a boolean feedback
-					// The user will be able to customise these values as well as the fields that will be changed
-					color: combineRgb(0, 0, 0),
-					bgcolor: combineRgb(255, 0, 0),
-				},
-				// options is how the user can choose the condition the feedback activates for
-				options: [],
-				callback: (_feedback) => {
-					// This callback will be called whenever companion wants to check if this feedback is 'active' and should affect the button style
-					return !this.isInUse
-				},
-				subscribe: () => {
-					this.subscriptions++
-				},
-				unsubscribe: () => {
-					this.subscriptions--
-				},
-			},
-			available: {
-				type: 'boolean', // Feedbacks can either a simple boolean, or can be an 'advanced' style change (until recently, all feedbacks were 'advanced')
-				name: 'Available',
-				description: 'True if some one is connected to the Clickshare but no one is streaming',
-				defaultStyle: {
-					// The default style change for a boolean feedback
-					// The user will be able to customise these values as well as the fields that will be changed
-					color: combineRgb(0, 0, 0),
-					bgcolor: combineRgb(255, 0, 0),
-				},
-				// options is how the user can choose the condition the feedback activates for
-				options: [],
-				callback: (_feedback) => {
-					// This callback will be called whenever companion wants to check if this feedback is 'active' and should affect the button style
-					return !!this.isInUse && !this.isSharing
-				},
-				subscribe: () => {
-					this.subscriptions++
-				},
-				unsubscribe: () => {
-					this.subscriptions--
-				},
-			},
-		})
+	updateFeedbacks(): void {
+		UpdateFeedbacks(this)
+	}
+
+	updateActions(): void {
+		UpdateActions(this)
 	}
 }
 
