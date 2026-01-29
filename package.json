@@ -19,7 +19,7 @@
     "node-fetch": "^2.7.0"
   },
   "devDependencies": {
-    "@companion-module/tools": "^1.4.1",
+    "@companion-module/tools": "^1.5.2",
     "@types/node": "^18.18.4",
     "@types/node-fetch": "^2.6.9",
     "@types/qunit": "^2.19.9",
