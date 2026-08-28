@@ -13,13 +13,13 @@
     "lint": "eslint . --ext .ts",
     "test": "qunit --require ts-node/register 'test/**/*-test.ts'"
   },
-	"prettier": "@companion-module/tools/.prettierrc.json",
+  "prettier": "@companion-module/tools/.prettierrc.json",
   "dependencies": {
     "@companion-module/base": "~1.6.0",
     "node-fetch": "^2.7.0"
   },
   "devDependencies": {
-    "@companion-module/tools": "^1.5.2",
+    "@companion-module/tools": "^2.8.0",
     "@types/node": "^18.18.4",
     "@types/node-fetch": "^2.6.9",
     "@types/qunit": "^2.19.9",
