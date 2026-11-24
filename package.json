@@ -1,6 +1,6 @@
 {
   "name": "barco-clickshare",
-  "version": "2.1.0",
+  "version": "2.1.1",
   "main": "dist/index.js",
   "repository": "git@github.com:bitfocus/companion-module-barco-clickshare.git",
   "license": "MIT",
@@ -15,11 +15,11 @@
   },
   "prettier": "@companion-module/tools/.prettierrc.json",
   "dependencies": {
-    "@companion-module/base": "~1.6.0",
+    "@companion-module/base": "~1.15.1",
     "node-fetch": "^2.7.0"
   },
   "devDependencies": {
-    "@companion-module/tools": "^2.8.0",
+    "@companion-module/tools": "~2.9.0",
     "@types/node": "^18.18.4",
     "@types/node-fetch": "^2.6.9",
     "@types/qunit": "^2.19.9",
